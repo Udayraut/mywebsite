@@ -1,98 +1,433 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>App Testing Status</title>
-
-<style>
-body {
-    font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #4285F4, #34A853);
-    margin: 0;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
-
-.container {
-    background: white;
-    padding: 40px;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    text-align: center;
-    max-width: 400px;
-}
-
-.logo {
-    width: 80px;
-    margin-bottom: 20px;
-}
-
-h1 {
-    color: #202124;
-    margin-bottom: 10px;
-}
-
-.status {
-    color: #34A853;
-    font-weight: bold;
-    font-size: 18px;
-    margin-bottom: 15px;
-}
-
-.desc {
-    color: #5f6368;
-    font-size: 14px;
-    margin-bottom: 25px;
-}
-
-.badge {
-    display: inline-block;
-    background: #4285F4;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 20px;
-    font-size: 14px;
-}
-
-.footer {
-    margin-top: 20px;
-    font-size: 12px;
-    color: #999;
-}
-</style>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+  <title>ReelShare • Feed | Explore | Reels</title>
+  <!-- Tailwind CSS v4 + Font Awesome + Google Fonts -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Inter', sans-serif; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb { background: #c5c5c5; border-radius: 10px; }
+    .story-ring {
+      background: linear-gradient(135deg, #feda77, #f58529, #dd2a7b, #8134af, #515bd4);
+      padding: 2px;
+      border-radius: 50%;
+    }
+    .post-card, .explore-item {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .post-card:hover, .explore-item:hover { transform: translateY(-2px); }
+    .like-animation {
+      animation: pop 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    }
+    @keyframes pop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.25); color: #ef4444; }
+      100% { transform: scale(1); }
+    }
+    body.dark {
+      background-color: #000000;
+    }
+    body.dark .bg-white { background-color: #121212; }
+    body.dark .bg-gray-50 { background-color: #0a0a0a; }
+    body.dark .text-gray-800, body.dark .text-gray-700 { color: #ededed; }
+    body.dark .text-gray-500, body.dark .text-gray-400 { color: #a3a3a3; }
+    body.dark .border-gray-100, body.dark .border-gray-200 { border-color: #2c2c2c; }
+    body.dark .bg-gray-100 { background-color: #1f1f1f; }
+    body.dark .shadow-sm { box-shadow: 0 1px 3px 0 rgba(255,255,255,0.05); }
+    .active-tab { border-bottom: 2px solid #f43f5e; color: #f43f5e; }
+    /* Reels specific styling */
+    .reels-container {
+      scroll-snap-type: y mandatory;
+      height: calc(100vh - 70px);
+      overflow-y: scroll;
+      scrollbar-width: thin;
+    }
+    .reel-item {
+      scroll-snap-align: start;
+      height: calc(100vh - 70px);
+      position: relative;
+    }
+    @media (max-width: 768px) {
+      .reels-container { height: calc(100vh - 60px); }
+      .reel-item { height: calc(100vh - 60px); }
+    }
+  </style>
 </head>
-<body>
+<body class="bg-gray-50 text-gray-800 antialiased transition-colors duration-200">
 
-<div class="container">
+  <div class="flex relative max-w-7xl mx-auto">
+    
+    <!-- LEFT SIDEBAR (navigation) -->
+    <aside id="sidebarNav" class="fixed md:sticky top-0 z-30 h-screen bg-white border-r border-gray-100 w-72 flex flex-col transition-all duration-300 transform -translate-x-full md:translate-x-0 shadow-xl md:shadow-none">
+      <div class="px-5 py-6 flex items-center justify-between border-b border-gray-100">
+        <div class="flex items-center gap-2">
+          <i class="fab fa-instagram text-3xl bg-gradient-to-tr from-purple-600 to-pink-500 bg-clip-text text-transparent"></i>
+          <span class="text-2xl font-black tracking-tight bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">ReelShare</span>
+        </div>
+        <button id="closeMobileMenu" class="md:hidden text-gray-500 text-2xl"><i class="fas fa-times"></i></button>
+      </div>
 
-    <!-- Google Logo -->
-    <img class="logo" src="https://www.gstatic.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png">
+      <div class="flex flex-col items-center py-6 px-4 border-b border-gray-100">
+        <div class="relative">
+          <img class="h-20 w-20 rounded-full object-cover ring-4 ring-pink-200" src="https://ui-avatars.com/api/?background=dc2626&color=fff&name=Mia+Chen&bold=true&size=80" alt="profile">
+          <span class="absolute bottom-1 right-1 h-4 w-4 bg-green-500 border-2 border-white rounded-full"></span>
+        </div>
+        <h3 class="font-bold text-lg mt-3">Mia Chen</h3>
+        <p class="text-sm text-gray-500">@miacreates</p>
+        <div class="flex gap-4 mt-3 text-center">
+          <div><span class="font-bold text-md">1,250</span><p class="text-xs text-gray-400">followers</p></div>
+          <div><span class="font-bold text-md">348</span><p class="text-xs text-gray-400">following</p></div>
+        </div>
+      </div>
 
-    <h1>Application Testing Status</h1>
+      <nav class="flex-1 py-6 px-4 space-y-2">
+        <a href="#" data-nav="home" class="nav-item flex items-center gap-4 px-3 py-2.5 rounded-xl text-gray-700 hover:bg-gray-50 transition"><i class="fas fa-home text-xl w-6"></i><span>Home</span></a>
+        <a href="#" data-nav="explore" class="nav-item flex items-center gap-4 px-3 py-2.5 rounded-xl text-gray-700 hover:bg-gray-50 transition"><i class="fas fa-compass text-xl w-6"></i><span>Explore</span></a>
+        <a href="#" data-nav="reels" class="nav-item flex items-center gap-4 px-3 py-2.5 rounded-xl text-gray-700 hover:bg-gray-50 transition"><i class="fas fa-clapperboard text-xl w-6"></i><span>Reels</span></a>
+        <a href="#" class="flex items-center gap-4 px-3 py-2.5 rounded-xl text-gray-700 hover:bg-gray-50 transition"><i class="fas fa-heart text-xl w-6"></i><span>Notifications</span></a>
+        <a href="#" class="flex items-center gap-4 px-3 py-2.5 rounded-xl text-gray-700 hover:bg-gray-50 transition"><i class="fas fa-user-circle text-xl w-6"></i><span>Profile</span></a>
+        <div class="pt-6 mt-4 border-t border-gray-100">
+          <button id="themeToggleSide" class="flex items-center gap-4 px-3 py-2.5 w-full rounded-xl text-gray-700 hover:bg-gray-50 transition"><i class="fas fa-moon text-xl w-6"></i><span>Dark mode</span></button>
+          <a href="#" class="flex items-center gap-4 px-3 py-2.5 rounded-xl text-red-500 hover:bg-red-50 mt-2"><i class="fas fa-sign-out-alt text-xl w-6"></i><span>Logout</span></a>
+        </div>
+      </nav>
+      <div class="p-4 text-center text-[10px] text-gray-400 border-t border-gray-100">© 2026 ReelShare • Social app</div>
+    </aside>
 
-    <div class="status">
-        Submitted via Google Platform
-    </div>
+    <div id="mobileOverlay" class="fixed inset-0 bg-black/40 z-20 hidden backdrop-blur-sm md:hidden"></div>
 
-    <div class="desc">
-        This application has been submitted to Google for review and testing.
-        The testing process ensures compatibility, performance, and security standards.
-    </div>
+    <!-- ========== MAIN CONTENT (Home + Explore + Reels) ========== -->
+    <main class="flex-1 max-w-2xl mx-auto px-4 py-4 md:py-6 w-full">
+      <!-- Top Bar -->
+      <div class="flex items-center justify-between mb-4 sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10 py-2 md:py-0">
+        <button id="openMobileMenu" class="md:hidden text-2xl text-gray-700"><i class="fas fa-bars"></i></button>
+        <div class="md:hidden flex items-center gap-1"><i class="fab fa-instagram text-2xl text-pink-500"></i><span class="font-black text-xl">ReelShare</span></div>
+        <div class="flex gap-4">
+          <i class="fas fa-heart text-xl text-gray-600"></i>
+          <i class="fas fa-paper-plane text-xl text-gray-600"></i>
+          <button id="themeToggleMobile" class="md:hidden"><i class="fas fa-moon text-gray-600 text-xl"></i></button>
+        </div>
+      </div>
 
-    <div class="badge">
-        Reviewed Submission via Google
-    </div>
+      <!-- Tab Switcher (Home / Explore / Reels) -->
+      <div class="flex gap-6 mb-5 border-b border-gray-200">
+        <button id="tabHomeBtn" class="tab-btn pb-2 px-1 text-base font-semibold text-gray-500 transition-all">🏠 Feed</button>
+        <button id="tabExploreBtn" class="tab-btn pb-2 px-1 text-base font-semibold text-gray-500 transition-all">🔍 Explore</button>
+        <button id="tabReelsBtn" class="tab-btn pb-2 px-1 text-base font-semibold text-gray-500 transition-all">🎬 Reels</button>
+      </div>
 
-    <div class="footer">
-        Status updated automatically • Secure connection verified
-    </div>
+      <!-- ********** HOME FEED SECTION ********** -->
+      <div id="homeFeed" class="space-y-6">
+        <!-- STORIES -->
+        <div class="bg-white rounded-2xl p-3 shadow-sm border border-gray-100 overflow-x-auto whitespace-nowrap scroll-smooth no-scrollbar">
+          <div class="flex gap-5">
+            <div class="flex flex-col items-center gap-1"><div class="story-ring"><img class="h-16 w-16 rounded-full p-0.5 bg-white object-cover" src="https://ui-avatars.com/api/?background=1e3a8a&color=fff&name=Your+Story&size=64" alt="story"></div><span class="text-xs font-medium">Your story</span></div>
+            <div class="flex flex-col items-center gap-1"><div class="story-ring"><img class="h-16 w-16 rounded-full p-0.5 bg-white object-cover" src="https://ui-avatars.com/api/?background=db2777&color=fff&name=Emma+W&size=64" alt="story"></div><span class="text-xs">emma.w</span></div>
+            <div class="flex flex-col items-center gap-1"><div class="story-ring"><img class="h-16 w-16 rounded-full p-0.5 bg-white object-cover" src="https://ui-avatars.com/api/?background=059669&color=fff&name=Jake+Liu&size=64" alt="story"></div><span class="text-xs">jake.liu</span></div>
+            <div class="flex flex-col items-center gap-1"><div class="story-ring"><img class="h-16 w-16 rounded-full p-0.5 bg-white object-cover" src="https://ui-avatars.com/api/?background=ea580c&color=fff&name=Sophia+R&size=64" alt="story"></div><span class="text-xs">sophia.r</span></div>
+            <div class="flex flex-col items-center gap-1"><div class="story-ring"><img class="h-16 w-16 rounded-full p-0.5 bg-white object-cover" src="https://ui-avatars.com/api/?background=0284c7&color=fff&name=Alex+M&size=64" alt="story"></div><span class="text-xs">alex.m</span></div>
+          </div>
+        </div>
 
-</div>
+        <!-- POST 1 -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden post-card">
+          <div class="flex items-center justify-between px-4 py-3">
+            <div class="flex items-center gap-3"><img class="h-9 w-9 rounded-full" src="https://ui-avatars.com/api/?background=6d28d9&color=fff&name=Emma+Watson&size=36"><div><p class="font-semibold text-sm">emmawatson_style</p><p class="text-xs text-gray-400">📍 Paris, France</p></div></div><i class="fas fa-ellipsis-h text-gray-500"></i>
+          </div>
+          <img class="w-full object-cover max-h-96" src="https://picsum.photos/id/20/600/500" alt="post">
+          <div class="px-4 py-2 flex justify-between items-center">
+            <div class="flex gap-4"><button class="like-btn text-2xl text-gray-600"><i class="far fa-heart"></i></button><button class="comment-toggle text-2xl text-gray-600"><i class="far fa-comment"></i></button><i class="far fa-paper-plane text-2xl text-gray-600"></i></div>
+            <i class="far fa-bookmark text-2xl text-gray-600"></i>
+          </div>
+          <div class="px-4 pb-2"><span class="font-bold text-sm likes-count">2,431</span> <span class="text-sm text-gray-600">likes</span></div>
+          <div class="px-4 pb-2"><span class="font-semibold text-sm">emmawatson_style</span> <span class="text-sm text-gray-700">Golden hour magic ✨ feeling grateful.</span></div>
+          <div class="px-4 pb-2 text-xs text-gray-400">View all 124 comments</div>
+          <div class="comments-section hidden px-4 pb-3 border-t border-gray-100 mt-1"><div class="space-y-1 py-2"><p><span class="font-semibold">jake.liu</span> Stunning shot! 🔥</p></div></div>
+          <div class="px-4 pb-3 flex gap-2 items-center border-t border-gray-100 pt-2"><input type="text" placeholder="Add a comment..." class="comment-input flex-1 text-sm bg-transparent outline-none"><button class="text-pink-500 font-semibold text-sm post-comment">Post</button></div>
+        </div>
 
+        <!-- POST 2 -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden post-card">
+          <div class="flex items-center justify-between px-4 py-3">
+            <div class="flex items-center gap-3"><img class="h-9 w-9 rounded-full" src="https://ui-avatars.com/api/?background=2563eb&color=fff&name=Theo+James&size=36"><div><p class="font-semibold text-sm">theo_adventures</p><p class="text-xs text-gray-400">🏔️ Alps trip</p></div></div><i class="fas fa-ellipsis-h text-gray-500"></i>
+          </div>
+          <img class="w-full object-cover max-h-96" src="https://picsum.photos/id/29/600/500" alt="mountain">
+          <div class="px-4 py-2 flex justify-between items-center">
+            <div class="flex gap-4"><button class="like-btn text-2xl text-gray-600"><i class="far fa-heart"></i></button><button class="comment-toggle text-2xl text-gray-600"><i class="far fa-comment"></i></button><i class="far fa-paper-plane text-2xl text-gray-600"></i></div>
+            <i class="far fa-bookmark text-2xl text-gray-600"></i>
+          </div>
+          <div class="px-4 pb-2"><span class="font-bold text-sm likes-count">8,721</span> <span class="text-sm text-gray-600">likes</span></div>
+          <div class="px-4 pb-2"><span class="font-semibold text-sm">theo_adventures</span> <span class="text-sm text-gray-700">The mountains are calling 🏔️</span></div>
+          <div class="px-4 pb-2 text-xs text-gray-400">View all 458 comments</div>
+          <div class="comments-section hidden px-4 pb-3 border-t border-gray-100 mt-1"><div class="space-y-1 py-2"><p><span class="font-semibold">hiking_life</span> Dream destination!</p></div></div>
+          <div class="px-4 pb-3 flex gap-2 items-center border-t border-gray-100 pt-2"><input type="text" placeholder="Add a comment..." class="comment-input flex-1 text-sm bg-transparent outline-none"><button class="text-pink-500 font-semibold text-sm post-comment">Post</button></div>
+        </div>
+      </div>
+
+      <!-- ********** EXPLORE PAGE (GRID) ********** -->
+      <div id="explorePage" class="hidden">
+        <div class="mb-5">
+          <h2 class="text-xl font-bold flex items-center gap-2"><i class="fas fa-globe-americas text-pink-500"></i> Discover new posts</h2>
+          <p class="text-sm text-gray-500">Trending photos & reels from creators</p>
+        </div>
+        <div class="grid grid-cols-3 gap-1.5 md:gap-3">
+          <div class="explore-item relative overflow-hidden rounded-xl aspect-square cursor-pointer group"><img class="w-full h-full object-cover" src="https://picsum.photos/id/101/300/300" alt="explore"><div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-4 text-white"><i class="fas fa-heart"></i><span>2.1k</span><i class="fas fa-comment"></i><span>184</span></div></div>
+          <div class="explore-item relative overflow-hidden rounded-xl aspect-square cursor-pointer group"><img class="w-full h-full object-cover" src="https://picsum.photos/id/15/300/300" alt="explore"><div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-4 text-white"><i class="fas fa-heart"></i><span>4.5k</span><i class="fas fa-comment"></i><span>320</span></div></div>
+          <div class="explore-item relative overflow-hidden rounded-xl aspect-square cursor-pointer group"><img class="w-full h-full object-cover" src="https://picsum.photos/id/22/300/300" alt="explore"><div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-4 text-white"><i class="fas fa-heart"></i><span>1.2k</span><i class="fas fa-comment"></i><span>92</span></div></div>
+          <div class="explore-item relative overflow-hidden rounded-xl aspect-square cursor-pointer group"><img class="w-full h-full object-cover" src="https://picsum.photos/id/26/300/300" alt="explore"><div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-4 text-white"><i class="fas fa-heart"></i><span>8k</span><i class="fas fa-comment"></i><span>550</span></div></div>
+          <div class="explore-item relative overflow-hidden rounded-xl aspect-square cursor-pointer group"><img class="w-full h-full object-cover" src="https://picsum.photos/id/36/300/300" alt="explore"><div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-4 text-white"><i class="fas fa-heart"></i><span>3.3k</span><i class="fas fa-comment"></i><span>210</span></div></div>
+          <div class="explore-item relative overflow-hidden rounded-xl aspect-square cursor-pointer group"><img class="w-full h-full object-cover" src="https://picsum.photos/id/48/300/300" alt="explore"><div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-4 text-white"><i class="fas fa-heart"></i><span>6k</span><i class="fas fa-comment"></i><span>402</span></div></div>
+          <div class="explore-item relative overflow-hidden rounded-xl aspect-square cursor-pointer group"><img class="w-full h-full object-cover" src="https://picsum.photos/id/60/300/300" alt="explore"><div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-4 text-white"><i class="fas fa-heart"></i><span>5.2k</span><i class="fas fa-comment"></i><span>321</span></div></div>
+          <div class="explore-item relative overflow-hidden rounded-xl aspect-square cursor-pointer group"><img class="w-full h-full object-cover" src="https://picsum.photos/id/76/300/300" alt="explore"><div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-4 text-white"><i class="fas fa-heart"></i><span>9k</span><i class="fas fa-comment"></i><span>670</span></div></div>
+          <div class="explore-item relative overflow-hidden rounded-xl aspect-square cursor-pointer group"><img class="w-full h-full object-cover" src="https://picsum.photos/id/88/300/300" alt="explore"><div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-4 text-white"><i class="fas fa-heart"></i><span>1.7k</span><i class="fas fa-comment"></i><span>123</span></div></div>
+          <div class="explore-item relative overflow-hidden rounded-xl aspect-square cursor-pointer group"><img class="w-full h-full object-cover" src="https://picsum.photos/id/96/300/300" alt="explore"><div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-4 text-white"><i class="fas fa-heart"></i><span>2.9k</span><i class="fas fa-comment"></i><span>201</span></div></div>
+          <div class="explore-item relative overflow-hidden rounded-xl aspect-square cursor-pointer group"><img class="w-full h-full object-cover" src="https://picsum.photos/id/119/300/300" alt="explore"><div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-4 text-white"><i class="fas fa-heart"></i><span>7.4k</span><i class="fas fa-comment"></i><span>489</span></div></div>
+          <div class="explore-item relative overflow-hidden rounded-xl aspect-square cursor-pointer group"><img class="w-full h-full object-cover" src="https://picsum.photos/id/145/300/300" alt="explore"><div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-4 text-white"><i class="fas fa-heart"></i><span>4.1k</span><i class="fas fa-comment"></i><span>298</span></div></div>
+        </div>
+        <div class="mt-6 p-4 bg-white rounded-2xl shadow-sm border border-gray-100">
+          <p class="text-sm font-semibold flex gap-2"><i class="fas fa-fire text-orange-500"></i> Trending Topics: #summervibes, #travelreels, #creators</p>
+          <div class="flex gap-2 mt-2 flex-wrap"><span class="bg-gray-100 px-3 py-1 rounded-full text-xs">#explorepage</span><span class="bg-gray-100 px-3 py-1 rounded-full text-xs">#photography</span><span class="bg-gray-100 px-3 py-1 rounded-full text-xs">#reelsinstagram</span></div>
+        </div>
+      </div>
+
+      <!-- ********** REELS SECTION (FULLSCREEN VERTICAL FEED) ********** -->
+      <div id="reelsPage" class="hidden">
+        <div class="reels-container no-scrollbar" id="reelsContainer">
+          <!-- Reel 1 -->
+          <div class="reel-item relative bg-black rounded-2xl overflow-hidden mb-2">
+            <video class="w-full h-full object-cover" autoplay muted loop playsinline poster="https://picsum.photos/id/200/400/700">
+              <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" type="video/mp4">
+            </video>
+            <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent text-white">
+              <div class="flex items-center gap-2 mb-2"><img class="h-8 w-8 rounded-full" src="https://ui-avatars.com/api/?background=dc2626&color=fff&name=Alex+R&size=32"><span class="font-bold">alex.rivers</span><span class="text-xs bg-white/20 px-2 py-0.5 rounded-full">Follow</span></div>
+              <p class="text-sm">Best sunset vibes 🌅 #reels #travel</p>
+              <div class="flex gap-4 mt-2 text-sm"><i class="fas fa-music"></i><span>Original audio</span></div>
+            </div>
+            <div class="absolute right-3 bottom-24 flex flex-col gap-5 text-white">
+              <button class="reel-like-btn flex flex-col items-center"><i class="far fa-heart text-2xl"></i><span class="text-xs">24.5k</span></button>
+              <button class="flex flex-col items-center"><i class="far fa-comment text-2xl"></i><span class="text-xs">1.2k</span></button>
+              <button class="flex flex-col items-center"><i class="far fa-paper-plane text-2xl"></i><span class="text-xs">share</span></button>
+            </div>
+          </div>
+          <!-- Reel 2 -->
+          <div class="reel-item relative bg-black rounded-2xl overflow-hidden mb-2">
+            <video class="w-full h-full object-cover" autoplay muted loop playsinline poster="https://picsum.photos/id/155/400/700">
+              <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFunflies.mp4" type="video/mp4">
+            </video>
+            <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent text-white">
+              <div class="flex items-center gap-2 mb-2"><img class="h-8 w-8 rounded-full" src="https://ui-avatars.com/api/?background=0891b2&color=fff&name=Sam+T&size=32"><span class="font-bold">sam.travels</span><span class="text-xs bg-white/20 px-2 py-0.5 rounded-full">Follow</span></div>
+              <p class="text-sm">Adventure is out there! 🏞️✨</p>
+              <div class="flex gap-4 mt-2 text-sm"><i class="fas fa-music"></i><span>Adventure beat</span></div>
+            </div>
+            <div class="absolute right-3 bottom-24 flex flex-col gap-5 text-white">
+              <button class="reel-like-btn flex flex-col items-center"><i class="far fa-heart text-2xl"></i><span class="text-xs">18.2k</span></button>
+              <button class="flex flex-col items-center"><i class="far fa-comment text-2xl"></i><span class="text-xs">945</span></button>
+              <button class="flex flex-col items-center"><i class="far fa-paper-plane text-2xl"></i><span class="text-xs">share</span></button>
+            </div>
+          </div>
+          <!-- Reel 3 -->
+          <div class="reel-item relative bg-black rounded-2xl overflow-hidden mb-2">
+            <video class="w-full h-full object-cover" autoplay muted loop playsinline poster="https://picsum.photos/id/30/400/700">
+              <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" type="video/mp4">
+            </video>
+            <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent text-white">
+              <div class="flex items-center gap-2 mb-2"><img class="h-8 w-8 rounded-full" src="https://ui-avatars.com/api/?background=be123c&color=fff&name=Zara+K&size=32"><span class="font-bold">zara.vibes</span><span class="text-xs bg-white/20 px-2 py-0.5 rounded-full">Follow</span></div>
+              <p class="text-sm">Weekend mood 💃 #reels #dance</p>
+              <div class="flex gap-4 mt-2 text-sm"><i class="fas fa-music"></i><span>Trending audio</span></div>
+            </div>
+            <div class="absolute right-3 bottom-24 flex flex-col gap-5 text-white">
+              <button class="reel-like-btn flex flex-col items-center"><i class="far fa-heart text-2xl"></i><span class="text-xs">42.1k</span></button>
+              <button class="flex flex-col items-center"><i class="far fa-comment text-2xl"></i><span class="text-xs">3.2k</span></button>
+              <button class="flex flex-col items-center"><i class="far fa-paper-plane text-2xl"></i><span class="text-xs">share</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- RIGHT SUGGESTIONS PANEL -->
+    <aside class="hidden lg:block w-80 pl-5 pr-3 pt-6 sticky top-0 h-screen">
+      <div class="flex items-center gap-3 mb-5"><img class="h-12 w-12 rounded-full" src="https://ui-avatars.com/api/?background=dc2626&color=fff&name=Mia+Chen&size=48"><div><p class="font-semibold text-sm">miacreates</p><p class="text-xs text-gray-400">Mia Chen</p></div><span class="ml-auto text-xs text-pink-500 font-semibold">Switch</span></div>
+      <div class="flex justify-between items-center"><span class="text-sm font-semibold text-gray-500">Suggestions for you</span><span class="text-xs font-bold">See All</span></div>
+      <div class="space-y-3 mt-3"><div class="flex items-center gap-2"><img class="h-8 w-8 rounded-full" src="https://ui-avatars.com/api/?background=0891b2&color=fff&name=Sam+W&size=32"><div class="flex-1"><p class="text-xs font-semibold">sam.designs</p><p class="text-[10px] text-gray-400">Follows you</p></div><span class="text-xs text-pink-500 font-medium">Follow</span></div><div class="flex items-center gap-2"><img class="h-8 w-8 rounded-full" src="https://ui-avatars.com/api/?background=be123c&color=fff&name=Lisa+Park&size=32"><div><p class="text-xs font-semibold">lisa_park</p><p class="text-[10px] text-gray-400">New to ReelShare</p></div><span class="text-xs text-pink-500 font-medium">Follow</span></div></div>
+    </aside>
+  </div>
+
+  <script>
+    (function() {
+      // Mobile sidebar
+      const sidebar = document.getElementById('sidebarNav');
+      const overlay = document.getElementById('mobileOverlay');
+      const openBtn = document.getElementById('openMobileMenu');
+      const closeBtn = document.getElementById('closeMobileMenu');
+      function openMobile() { sidebar.classList.remove('-translate-x-full'); overlay.classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
+      function closeMobile() { sidebar.classList.add('-translate-x-full'); overlay.classList.add('hidden'); document.body.style.overflow = ''; }
+      if(openBtn) openBtn.addEventListener('click', openMobile);
+      if(closeBtn) closeBtn.addEventListener('click', closeMobile);
+      if(overlay) overlay.addEventListener('click', closeMobile);
+      
+      // Dark mode
+      const themeSide = document.getElementById('themeToggleSide');
+      const themeMobile = document.getElementById('themeToggleMobile');
+      function setTheme(isDark) {
+        if(isDark) {
+          document.body.classList.add('dark');
+          localStorage.setItem('appTheme', 'dark');
+          document.querySelectorAll('#themeToggleSide i, #themeToggleMobile i').forEach(icon => {
+            if(icon.classList.contains('fa-moon')) { icon.classList.remove('fa-moon'); icon.classList.add('fa-sun'); }
+          });
+          if(themeSide) themeSide.querySelector('span').innerText = 'Light mode';
+        } else {
+          document.body.classList.remove('dark');
+          localStorage.setItem('appTheme', 'light');
+          document.querySelectorAll('#themeToggleSide i, #themeToggleMobile i').forEach(icon => {
+            if(icon.classList.contains('fa-sun')) { icon.classList.remove('fa-sun'); icon.classList.add('fa-moon'); }
+          });
+          if(themeSide) themeSide.querySelector('span').innerText = 'Dark mode';
+        }
+      }
+      function toggleTheme() { setTheme(!document.body.classList.contains('dark')); }
+      if(themeSide) themeSide.addEventListener('click', toggleTheme);
+      if(themeMobile) themeMobile.addEventListener('click', toggleTheme);
+      const savedTheme = localStorage.getItem('appTheme');
+      if(savedTheme === 'dark') setTheme(true); else setTheme(false);
+      
+      // TAB SWITCHING (Home / Explore / Reels)
+      const homeSection = document.getElementById('homeFeed');
+      const exploreSection = document.getElementById('explorePage');
+      const reelsSection = document.getElementById('reelsPage');
+      const tabHome = document.getElementById('tabHomeBtn');
+      const tabExplore = document.getElementById('tabExploreBtn');
+      const tabReels = document.getElementById('tabReelsBtn');
+      
+      function setActiveTab(active) {
+        homeSection.classList.add('hidden');
+        exploreSection.classList.add('hidden');
+        reelsSection.classList.add('hidden');
+        if(active === 'home') { homeSection.classList.remove('hidden'); tabHome.classList.add('active-tab', 'text-pink-500'); tabExplore.classList.remove('active-tab', 'text-pink-500'); tabReels.classList.remove('active-tab', 'text-pink-500'); }
+        else if(active === 'explore') { exploreSection.classList.remove('hidden'); tabExplore.classList.add('active-tab', 'text-pink-500'); tabHome.classList.remove('active-tab', 'text-pink-500'); tabReels.classList.remove('active-tab', 'text-pink-500'); }
+        else { reelsSection.classList.remove('hidden'); tabReels.classList.add('active-tab', 'text-pink-500'); tabHome.classList.remove('active-tab', 'text-pink-500'); tabExplore.classList.remove('active-tab', 'text-pink-500'); }
+      }
+      tabHome.addEventListener('click', () => setActiveTab('home'));
+      tabExplore.addEventListener('click', () => setActiveTab('explore'));
+      tabReels.addEventListener('click', () => setActiveTab('reels'));
+      setActiveTab('home');
+      
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+          const nav = item.getAttribute('data-nav');
+          if(nav === 'home') setActiveTab('home');
+          else if(nav === 'explore') setActiveTab('explore');
+          else if(nav === 'reels') setActiveTab('reels');
+        });
+      });
+      
+      // LIKE BUTTONS for feed
+      function attachLikeListeners() {
+        document.querySelectorAll('#homeFeed .like-btn').forEach(btn => {
+          btn.removeEventListener('click', likeHandler);
+          btn.addEventListener('click', likeHandler);
+        });
+      }
+      function likeHandler(e) {
+        const btn = e.currentTarget;
+        const heartIcon = btn.querySelector('i');
+        const postCard = btn.closest('.post-card');
+        if(!postCard) return;
+        const likesSpan = postCard.querySelector('.likes-count');
+        let currentLikes = parseInt(likesSpan.innerText.replace(/,/g, ''));
+        if(heartIcon.classList.contains('far')) {
+          heartIcon.classList.remove('far');
+          heartIcon.classList.add('fas', 'text-red-500');
+          likesSpan.innerText = (currentLikes + 1).toLocaleString();
+          heartIcon.classList.add('like-animation');
+          setTimeout(() => heartIcon.classList.remove('like-animation'), 300);
+        } else {
+          heartIcon.classList.remove('fas', 'text-red-500');
+          heartIcon.classList.add('far');
+          likesSpan.innerText = (currentLikes - 1).toLocaleString();
+        }
+      }
+      // Comments logic
+      document.querySelectorAll('#homeFeed .comment-toggle').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const postDiv = e.currentTarget.closest('.post-card');
+          const commentsSection = postDiv.querySelector('.comments-section');
+          if(commentsSection) commentsSection.classList.toggle('hidden');
+        });
+      });
+      document.querySelectorAll('#homeFeed .post-comment').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const container = e.currentTarget.closest('.post-card');
+          const inputField = container.querySelector('.comment-input');
+          const commentText = inputField.value.trim();
+          if(commentText === "") return;
+          const commentsDiv = container.querySelector('.comments-section');
+          if(commentsDiv) {
+            let commentContainer = commentsDiv.querySelector('.space-y-1');
+            if(!commentContainer) { commentContainer = document.createElement('div'); commentContainer.className = 'space-y-1 py-2'; commentsDiv.appendChild(commentContainer); }
+            const newComment = document.createElement('p');
+            newComment.innerHTML = `<span class="font-semibold">miacreates</span> ${escapeHtml(commentText)}`;
+            commentContainer.appendChild(newComment);
+            inputField.value = '';
+            commentsDiv.classList.remove('hidden');
+            const viewSpan = container.querySelector('.text-xs.text-gray-400');
+            if(viewSpan && viewSpan.innerText.includes('View all')) {
+              let match = viewSpan.innerText.match(/\d+/);
+              let cnt = match ? parseInt(match[0]) : 0;
+              if(!isNaN(cnt)) viewSpan.innerText = `View all ${cnt+1} comments`;
+            }
+          }
+        });
+      });
+      function escapeHtml(str) { return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+      attachLikeListeners();
+      
+      // Reels like buttons
+      function initReelsLikes() {
+        document.querySelectorAll('.reel-like-btn').forEach(btn => {
+          btn.removeEventListener('click', reelLikeHandler);
+          btn.addEventListener('click', reelLikeHandler);
+        });
+      }
+      function reelLikeHandler(e) {
+        const btn = e.currentTarget;
+        const icon = btn.querySelector('i');
+        const countSpan = btn.querySelector('span');
+        let count = parseInt(countSpan.innerText.replace(/k/g, '').replace(/\./g, ''));
+        if(isNaN(count)) count = 0;
+        if(icon.classList.contains('far')) {
+          icon.classList.remove('far');
+          icon.classList.add('fas', 'text-red-500');
+          let newCount = count + 1;
+          countSpan.innerText = newCount > 1000 ? (newCount/1000).toFixed(1)+'k' : newCount;
+        } else {
+          icon.classList.remove('fas', 'text-red-500');
+          icon.classList.add('far');
+          let newCount = count - 1;
+          countSpan.innerText = newCount > 1000 ? (newCount/1000).toFixed(1)+'k' : newCount;
+        }
+      }
+      initReelsLikes();
+      
+      // Auto-play videos in viewport (simple)
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          const video = entry.target.querySelector('video');
+          if(video) {
+            if(entry.isIntersecting) video.play().catch(e=>{});
+            else video.pause();
+          }
+        });
+      }, { threshold: 0.5 });
+      document.querySelectorAll('.reel-item').forEach(item => observer.observe(item));
+    })();
+  </script>
 </body>
 </html>
